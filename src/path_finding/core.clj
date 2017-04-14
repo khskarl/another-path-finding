@@ -48,8 +48,8 @@
   (apply q/line (map #(+ (/ tile-size 2) (discrete-to-screen %)) [x0 y0 x1 y1])))
 
 (defn draw-path [path]
-  (q/stroke-weight 5.0) 
-  (q/stroke 0 60 200 200)
+  (q/stroke-weight 2.0) 
+  (q/stroke 20 20 20 205)
   ;; (run! draw-tile path)
   (reduce #(do (draw-connection %1 %2) %2) path)
   )
@@ -66,7 +66,7 @@
   (draw-tiles 0 0)
   (q/fill 20 20 20 120)
   (q/rect 0 0 window-size window-size)
-  (draw-tiles 0.5 1.5)
+  (draw-tiles 0.3 1.5)
 
   ;; Draw Path if any (currently a placeholder)
   (draw-path placeholder-path)
