@@ -14,7 +14,7 @@
 (def window-size 400)
 (def tile-size (dec (/ (float window-size) (count pf/tilemap))))
 
-(def placeholder-path (pf/calculate-path [0 0] [10 0]))
+(def placeholder-path (pf/calculate-path [0 0] [10 1]))
 
 (defn get-color-from-id [id]
   (get {0 0xFFABFF4F
@@ -44,18 +44,25 @@
        (q/fill (get-color-from-id (get-in pf/tilemap [y x])))
        (draw-tile [x y] pad r)))))
 
+(defn draw-connection [[x0 y0] [x1 y1]]
+  (apply q/line (map #(+ (/ tile-size 2) (discrete-to-screen %)) [x0 y0 x1 y1])))
+
 (defn draw-path [path]
-  (q/fill 0 60 200 100)
-  (run! draw-tile path))
+  (q/stroke-weight 5.0) 
+  (q/stroke 0 60 200 200)
+  ;; (run! draw-tile path)
+  (reduce #(do (draw-connection %1 %2) %2) path)
+  )
 
 (defn setup []
   (q/frame-rate 60)
-  (q/stroke-weight 0))
+  )
 
 (defn draw []
   (q/background 20)
 
   ;; Draw map
+  (q/stroke-weight 0)
   (draw-tiles 0 0)
   (q/fill 20 20 20 120)
   (q/rect 0 0 window-size window-size)
