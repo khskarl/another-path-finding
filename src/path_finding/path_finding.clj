@@ -93,10 +93,10 @@
   (map #(:depth %) nodes))
 
 ;; TODO: Fix repeated node expansion, e.g. when from = [0 0], to = [0 3]
-(defn iterative-iddfs
+(defn iddfs
   ([from to]
    (loop [max-depth 0]
-     (let [result (iterative-iddfs from to max-depth)]
+     (let [result (iddfs from to max-depth)]
        (if (or (nil? result) (> max-depth 50000))
          (recur (inc max-depth))
          result))))
@@ -120,6 +120,10 @@
             :leaves (get-values to-visit)})
          (empty? to-visit)
          nil
+         (some #(= % (:value current)) discovered)
+         (recur discovered
+                parents
+                (butlast to-visit))
          :else
          (if (= (:depth current) max-depth)
            (recur (conj discovered (:value current))
@@ -134,7 +138,9 @@
                                          :depth (inc (:depth current)))
                                  (reverse (remove-in not-visited-neighbors to-visit))))))))))))
 
-(iterative-iddfs [0 0] [1 2])
+(some #(= % [1 2]) [[0 0] [1 1] [1 2]])
+
+(iddfs [0 0] [1 2])
 
 (defn ucs [from to]
   (loop [discovered [from]
@@ -164,5 +170,5 @@
 
 (sort-by #(:cost %) [{:cost 10} {:cost 0} {:cost 2}])
 (defn calculate-path [from to]
-  (ucs from to))
+  (iddfs from to))
 
