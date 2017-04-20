@@ -14,7 +14,7 @@
 (def window-size 400)
 (def tile-size (dec (/ (float window-size) (count pf/tilemap))))
 
-(def path-finding-result (pf/calculate-path [0 0] [10 15]))
+(def path-finding-result (pf/calculate-path [0 0] [35 40]))
 
 (defn get-color-from-id [id]
   (get {0 0xFFABFF4F
