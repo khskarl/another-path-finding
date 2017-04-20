@@ -87,21 +87,89 @@
                  (concat parents (into [] (repeat (count not-discovered-neighbors) current)))
                  (concat (rest to-visit) not-discovered-neighbors)))))))
 
+;; function IDDFS(root)
+;;   for depth from 0 to ∞
+;;     found ← DLS(root, depth)
+;;     if found ≠ null
+;;       return found
+
+;; function DLS(node, depth)
+;;   if depth = 0 and node is a goal
+;;     return node
+;;   if depth > 0
+;;     foreach child of node
+;;       found ← DLS(child, depth−1)
+;;     if found ≠ null
+;;       return found
+;;   return null
+
+(defn get-value [node]
+  (:value node))
+
+(defn get-depth [node]
+  (:depth node))
+
+(defn get-values [nodes]
+  (map #(:value %) nodes))
+
+(defn get-depths [nodes]
+  (map #(:depth %) nodes))
+
+(defn iterative-iddfs
+  ([from to]
+   (loop [max-depth 0]
+     (let [result (iterative-iddfs from to max-depth)]
+       (if (or (nil? result) (> max-depth 50000))
+         (recur (inc max-depth))
+         result))))
+  ([from to max-depth] 
+   (loop [discovered []
+          parents [nil]
+          to-visit [{:value from :depth 0}]] 
+     (let [current (last to-visit)]
+       ;; (println current (last parents))
+       (cond
+         (= (get-value current) to)
+         (do
+           {:path (path-from-parents (:value current)
+                                     (get-values (conj discovered current))
+                                     (get-values parents))
+            :discovered (get-values (conj discovered current))
+            :leaves (get-values to-visit)})
+         (empty? to-visit)
+         nil
+         :else
+         (if (= (get-depth current) max-depth)
+           (recur discovered
+                  parents
+                  (butlast to-visit))
+           (let [neighbors (get-neighbors (get-value current))
+                 not-visited-neighbors (remove-in neighbors (get-values discovered))]
+             (recur (conj discovered current)
+                    (conj parents current)
+                    (concat (butlast to-visit)
+                            (map #(assoc {:value %} :depth (inc (get-depth current)))
+                                 (reverse not-visited-neighbors)))))))))))
+
+(iterative-iddfs [0 0] [10 10])
+
+({:value 10 :depth 20})
+(assoc {:value 10} :depth 20)
+(defn dls [current to depth]
+  (if (and (= depth 0) (= current to))
+    current
+    (if (< depth 0)
+      (let [neighbors (get-neighbors current)]
+        (first (filter #(not (nil? %)) (map #(dls % to (dec depth))))))
+      nil)))
+
+(first (filter #(not (nil? %)) [nil nil]))
+
 (defn iddfs [from to]
-  (loop [discovered []
-         parents [nil]
-         to-visit [from]]
-    (let [current (last to-visit)]
-      (if (or (= current to) (empty? to-visit))
-        {:path (path-from-parents current (conj discovered current) parents)
-         :discovered (conj discovered current)
-         :leaves to-visit}
-        (let [neighbors (get-neighbors current)
-              not-visited-neighbors (remove-in neighbors discovered)]
-          (recur (conj discovered current)
-                 (conj parents current)
-                 (concat (butlast to-visit) (reverse not-visited-neighbors))))))))
+  (loop [depth 0]
+    (if (> depth 5000)
+      )))
 
 (defn calculate-path [from to]
-  (dfs from to))
+  (iterative-iddfs from to))
 

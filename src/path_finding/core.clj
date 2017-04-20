@@ -20,7 +20,7 @@
   (get {0 0xFFABFF4F
         1 0xFFD99D5C
         2 0xFF08BDBD
-        3 0xFFD20B2F}
+        3 0xFFF20B2F}
        id))
 
 (defn discrete-to-screen [x]
