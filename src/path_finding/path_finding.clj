@@ -124,37 +124,40 @@
          result))))
   ([from to max-depth] 
    (loop [discovered []
-          parents [nil]
-          to-visit [{:value from :depth 0}]] 
+          parents []
+          to-visit [{:value from :depth 0 :parent nil}]] 
      (let [current (last to-visit)]
-       ;; (println current (last parents))
+       (println current (last parents))
        (cond
          (= (get-value current) to)
          (do
-           {:path (path-from-parents (:value current)
-                                     (get-values (conj discovered current))
-                                     (get-values parents))
-            :discovered (get-values (conj discovered current))
+           ;; (println "Found:" current
+           ;;          "\nDiscovered:" discovered
+           ;;          "\nParents:     " parents
+           ;;          "\nTo Visit:" to-visit)
+           {:path (path-from-parents (get-value current)
+                                     (conj discovered (:value current))
+                                     (conj parents (:parent current)))
+            :discovered (conj discovered (get-value current))
             :leaves (get-values to-visit)})
          (empty? to-visit)
          nil
          :else
          (if (= (get-depth current) max-depth)
-           (recur discovered
-                  parents
+           (recur (conj discovered (:value current))
+                  (conj parents (:parent current))
                   (butlast to-visit))
            (let [neighbors (get-neighbors (get-value current))
-                 not-visited-neighbors (remove-in neighbors (get-values discovered))]
-             (recur (conj discovered current)
-                    (conj parents current)
+                 not-visited-neighbors (remove-in neighbors discovered)]
+             (recur (conj discovered (:value  current))
+                    (conj parents    (:parent current))
                     (concat (butlast to-visit)
-                            (map #(assoc {:value %} :depth (inc (get-depth current)))
+                            (map #(assoc {:value % :parent (:value current)}
+                                         :depth (inc (get-depth current)))
                                  (reverse not-visited-neighbors)))))))))))
 
-(iterative-iddfs [0 0] [10 10])
+(iterative-iddfs [0 0] [1 2])
 
-({:value 10 :depth 20})
-(assoc {:value 10} :depth 20)
 (defn dls [current to depth]
   (if (and (= depth 0) (= current to))
     current
