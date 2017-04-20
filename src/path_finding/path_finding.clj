@@ -105,7 +105,7 @@
           parents []
           to-visit [{:value from :depth 0 :parent nil}]] 
      (let [current (last to-visit)]
-       (println current (last parents))
+       ;; (println current (last parents))
        (cond
          (= (:value current) to)
          (do
@@ -136,6 +136,33 @@
 
 (iterative-iddfs [0 0] [1 2])
 
+(defn ucs [from to]
+  (loop [discovered []
+         parents []
+         to-visit [{:value from :cost (get-tile-cost from) :parent nil}]]
+    (let [current (first to-visit)]
+      (if (= (:value current) to)
+        {:path (path-from-parents (:value current)
+                                  (conj discovered (:value current))
+                                  (conj parents (:parent current)))
+         :discovered (conj discovered (:value current))
+         :leaves [0 0]}
+        (let [neighbors (get-neighbors (:value current))
+              not-visited-neighbors (remove-in neighbors discovered)]
+          (recur (conj discovered (:value current))
+                 (conj parents (:parent current))
+                 (sort-by #(:cost %)
+                          (concat (rest to-visit)
+                                  (map #(into {} [{:value %}
+                                                  {:cost (+ (:cost current) (get-tile-cost %))}
+                                                  {:parent (:value current)}])
+                                       not-visited-neighbors)))))
+        ))
+    ))
+
+(ucs [0 0] [1 1])
+
+(sort-by #(:cost %) [{:cost 10} {:cost 0} {:cost 2}])
 (defn calculate-path [from to]
-  (iterative-iddfs from to))
+  (ucs from to))
 
