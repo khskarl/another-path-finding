@@ -70,7 +70,6 @@
                  (conj parents current)
                  (concat (butlast to-visit) (reverse not-visited-neighbors))))))))
 
-
 (defn bfs [from to]
   (loop [discovered [from]
          parents [nil]
@@ -86,22 +85,6 @@
           (recur (concat discovered not-discovered-neighbors)
                  (concat parents (into [] (repeat (count not-discovered-neighbors) current)))
                  (concat (rest to-visit) not-discovered-neighbors)))))))
-
-;; function IDDFS(root)
-;;   for depth from 0 to ∞
-;;     found ← DLS(root, depth)
-;;     if found ≠ null
-;;       return found
-
-;; function DLS(node, depth)
-;;   if depth = 0 and node is a goal
-;;     return node
-;;   if depth > 0
-;;     foreach child of node
-;;       found ← DLS(child, depth−1)
-;;     if found ≠ null
-;;       return found
-;;   return null
 
 (defn get-values [nodes]
   (map #(:value %) nodes))
