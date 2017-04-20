@@ -14,7 +14,8 @@
 (def window-size 400)
 (def tile-size (dec (/ (float window-size) (count pf/tilemap))))
 
-(def path-finding-result (pf/calculate-path [0 0] [20 20]))
+(def path-finding-result (pf/calculate-path [0 0] [10 10]))
+(defn cost [] (pf/calculate-path-cost (:path path-finding-result)))
 
 (defn get-color-from-id [id]
   (get {0 0xFFABFF4F
@@ -56,6 +57,7 @@
 
 (defn setup []
   (q/frame-rate 60)
+  (q/text-font (q/create-font "DejaVu Sans" 11 true))
   )
 
 (defn draw []
@@ -80,7 +82,13 @@
   (q/stroke-weight 1.5) 
   (draw-highlight-tiles (:discovered path-finding-result))
   
-  ;; Draw Chicken  
+
+  ;; Draw HUD
+  (q/fill 50 50 50 255) 
+  (q/stroke 255 255 255 255) 
+  (q/stroke-weight 20.5) 
+  (q/text (str "Cost:" (cost)) 0 (dec (q/height)))
+  
   )
 
 (q/defsketch path-finding

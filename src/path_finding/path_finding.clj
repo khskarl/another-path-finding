@@ -22,6 +22,9 @@
         3 15}
        (get-in tilemap [y x])))
 
+(defn calculate-path-cost [path]
+  (reduce + (map get-tile-cost path)))
+
 (defn get-neighbors [[x y]]
   (filter #(and (not= [x y] %)
                 (is-within-map? %))
@@ -29,20 +32,6 @@
                      [(inc x) y]
                      [x (inc y)]
                      [(dec x) y]])))
-
-(defn pseudo-search [from to]
-  (loop [visited [from] current from]
-    (if (= (last visited) to)
-      visited
-      (do
-        (Thread/sleep 1)
-        (let [neighbors (get-neighbors current)
-              not-visited-neighbors (remove (fn [i] (some #(= % i) visited)) neighbors)]
-          (println current ":" not-visited-neighbors)
-          (if (empty? not-visited-neighbors)
-            visited
-            (let [to-visit (apply min-key get-tile-cost not-visited-neighbors)]
-              (recur (conj visited to-visit) to-visit))))))))
 
 (defn remove-in [target to-remove]
   (remove (fn [i] (some #(= % i) to-remove)) target))
@@ -138,10 +127,6 @@
                                          :depth (inc (:depth current)))
                                  (reverse (remove-in not-visited-neighbors to-visit))))))))))))
 
-(some #(= % [1 2]) [[0 0] [1 1] [1 2]])
-
-(iddfs [0 0] [1 2])
-
 (defn ucs [from to]
   (loop [discovered [from]
          parents [nil]
@@ -165,8 +150,6 @@
                                        not-visited-neighbors)))))
         ))
     ))
-
-(ucs [0 0] [1 1])
 
 (sort-by #(:cost %) [{:cost 10} {:cost 0} {:cost 2}])
 (defn calculate-path [from to]
