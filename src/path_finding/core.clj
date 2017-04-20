@@ -14,7 +14,7 @@
 (def window-size 400)
 (def tile-size (dec (/ (float window-size) (count pf/tilemap))))
 
-(def placeholder-path (pf/calculate-path [0 0] [10 1]))
+(def path-finding-result (pf/calculate-path [0 0] [20 20]))
 
 (defn get-color-from-id [id]
   (get {0 0xFFABFF4F
@@ -32,8 +32,8 @@
          y (discrete-to-screen y)]
      (q/rect x y (inc tile-size) (inc tile-size))))
   ([[x y] pad r]
-   (let [x (+ pad (discrete-to-screen x))
-         y (+ pad (discrete-to-screen y))]
+   (let [x (+ (/ pad 2) (discrete-to-screen x))
+         y (+ (/ pad 2) (discrete-to-screen y))]
      (q/rect x y (- (inc tile-size) pad) (- (inc tile-size) pad) r))))
 
 (defn draw-tiles [pad r]
@@ -48,11 +48,11 @@
   (apply q/line (map #(+ (/ tile-size 2) (discrete-to-screen %)) [x0 y0 x1 y1])))
 
 (defn draw-path [path]
-  (q/stroke-weight 2.0) 
-  (q/stroke 20 20 20 205)
-  ;; (run! draw-tile path)
   (reduce #(do (draw-connection %1 %2) %2) path)
   )
+
+(defn draw-highlight-tiles [tiles]
+  (run! #(draw-tile % 0 0) tiles))
 
 (defn setup []
   (q/frame-rate 60)
@@ -66,13 +66,21 @@
   (draw-tiles 0 0)
   (q/fill 20 20 20 120)
   (q/rect 0 0 window-size window-size)
-  (draw-tiles 0.3 1.5)
+  (draw-tiles 0.0 0.0)
 
-  ;; Draw Path if any (currently a placeholder)
-  (draw-path placeholder-path)
+  ;; Draw Path
+  (q/stroke-cap :square)
+  (q/stroke-weight 2.0) 
+  (q/stroke 100 60 60 255)
+  (draw-path (:path path-finding-result))
+
+  ;; Draw Discovered
+  (q/fill 20 20 100 80) 
+  (q/stroke 20 20 100 20) 
+  (q/stroke-weight 1.5) 
+  (draw-highlight-tiles (:discovered path-finding-result))
   
-  ;; Draw Chicken
-  
+  ;; Draw Chicken  
   )
 
 (q/defsketch path-finding

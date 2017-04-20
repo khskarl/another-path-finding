@@ -44,26 +44,64 @@
             (let [to-visit (apply min-key get-tile-cost not-visited-neighbors)]
               (recur (conj visited to-visit) to-visit))))))))
 
-;;  procedure DFS-iterative(G,v):
-;;      let S be a stack
-;;      S.push(v)
-;;      while S is not empty
-;;          current = S.pop()
-;;          set v as visited
-;;          for all edges from v to w in G.adjacentEdges(v) do
-;;              if w was not visited:
-;;                  S.push(w)
+(defn remove-in [target to-remove]
+  (remove (fn [i] (some #(= % i) to-remove)) target))
+
+(defn path-from-parents [target cells parents]
+  (loop [path [target]]
+    (let [current (first path)
+          parent (nth parents (.indexOf cells current))]
+      (if (nil? parent)
+        path
+        (recur (cons parent path))))))
 
 (defn dfs [from to]
-  (loop [visited []
+  (loop [discovered []
+         parents [nil]
          to-visit [from]]
     (let [current (last to-visit)]
       (if (or (= current to) (empty? to-visit))
-        (conj visited current)
+        {:path (path-from-parents current (conj discovered current) parents)
+         :discovered (conj discovered current)
+         :leaves to-visit}
         (let [neighbors (get-neighbors current)
-              not-visited-neighbors (remove (fn [i] (some #(= % i) visited)) neighbors)]
-          (recur (conj visited current)
+              not-visited-neighbors (remove-in neighbors discovered)]
+          (recur (conj discovered current)
+                 (conj parents current)
+                 (concat (butlast to-visit) (reverse not-visited-neighbors))))))))
+
+
+(defn bfs [from to]
+  (loop [discovered [from]
+         parents [nil]
+         to-visit [from]]
+    (let [current (first to-visit)]
+      (if (or (= current to) (empty? to-visit))
+        (do
+          {:path (path-from-parents current discovered parents)
+           :discovered discovered
+           :leaves to-visit})
+        (let [neighbors (get-neighbors current)
+              not-discovered-neighbors (remove-in neighbors discovered)]
+          (recur (concat discovered not-discovered-neighbors)
+                 (concat parents (into [] (repeat (count not-discovered-neighbors) current)))
+                 (concat (rest to-visit) not-discovered-neighbors)))))))
+
+(defn iddfs [from to]
+  (loop [discovered []
+         parents [nil]
+         to-visit [from]]
+    (let [current (last to-visit)]
+      (if (or (= current to) (empty? to-visit))
+        {:path (path-from-parents current (conj discovered current) parents)
+         :discovered (conj discovered current)
+         :leaves to-visit}
+        (let [neighbors (get-neighbors current)
+              not-visited-neighbors (remove-in neighbors discovered)]
+          (recur (conj discovered current)
+                 (conj parents current)
                  (concat (butlast to-visit) (reverse not-visited-neighbors))))))))
 
 (defn calculate-path [from to]
   (dfs from to))
+
