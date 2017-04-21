@@ -14,8 +14,11 @@
 (def window-size 400)
 (def tile-size (dec (/ (float window-size) (count pf/tilemap))))
 
-(def path-finding-result (pf/calculate-path [0 0] [10 10]))
-(defn cost [] (pf/calculate-path-cost (:path path-finding-result)))
+(def start-pos (atom [1 0]))
+(def end-pos (atom [20 20]))
+(def path-finding-result (atom (pf/calculate-path @start-pos @end-pos)))
+
+(defn cost [] (pf/calculate-path-cost (:path @path-finding-result)))
 
 (defn get-color-from-id [id]
   (get {0 0xFFABFF4F
@@ -24,17 +27,20 @@
         3 0xFFF20B2F}
        id))
 
-(defn discrete-to-screen [x]
+(defn grid-to-screen [x]
   (+ x (* tile-size x)))
+
+(defn screen-to-grid [x]
+  (int (/ x (inc tile-size))))
 
 (defn draw-tile
   ([[x y]]
-   (let [x (discrete-to-screen x)
-         y (discrete-to-screen y)]
+   (let [x (grid-to-screen x)
+         y (grid-to-screen y)]
      (q/rect x y (inc tile-size) (inc tile-size))))
   ([[x y] pad r]
-   (let [x (+ (/ pad 2) (discrete-to-screen x))
-         y (+ (/ pad 2) (discrete-to-screen y))]
+   (let [x (+ (/ pad 2) (grid-to-screen x))
+         y (+ (/ pad 2) (grid-to-screen y))]
      (q/rect x y (- (inc tile-size) pad) (- (inc tile-size) pad) r))))
 
 (defn draw-tiles [pad r]
@@ -46,7 +52,7 @@
        (draw-tile [x y] pad r)))))
 
 (defn draw-connection [[x0 y0] [x1 y1]]
-  (apply q/line (map #(+ (/ tile-size 2) (discrete-to-screen %)) [x0 y0 x1 y1])))
+  (apply q/line (map #(+ (/ tile-size 2) (grid-to-screen %)) [x0 y0 x1 y1])))
 
 (defn draw-path [path]
   (reduce #(do (draw-connection %1 %2) %2) path)
@@ -57,8 +63,7 @@
 
 (defn setup []
   (q/frame-rate 60)
-  (q/text-font (q/create-font "DejaVu Sans" 11 true))
-  )
+  (q/text-font (q/create-font "DejaVu Sans" 11 true)))
 
 (defn draw []
   (q/background 20)
@@ -74,17 +79,48 @@
   (q/stroke-cap :square)
   (q/stroke-weight 2.0) 
   (q/stroke 100 60 60 255)
-  (draw-path (:path path-finding-result))
+  (draw-path (:path @path-finding-result))
 
   ;; Draw Discovered
   (q/fill 20 20 100 80) 
   (q/stroke 20 20 100 20) 
   (q/stroke-weight 1.5) 
-  (draw-highlight-tiles (:discovered path-finding-result))
-  
+  (draw-highlight-tiles (:discovered @path-finding-result))
 
+  ;; Draw Start and End points
+  (q/fill 230 230 230 255)
+  (q/stroke 50 50 50 50)
+  (q/stroke-weight 2)
+  (let [start-x (+ (/ tile-size 2) (grid-to-screen (first @start-pos)))
+        start-y (+ (/ tile-size 2) (grid-to-screen (second @start-pos)))
+        end-x   (+ (/ tile-size 2) (grid-to-screen (first @end-pos)))
+        end-y   (+ (/ tile-size 2) (grid-to-screen (second @end-pos)))]
+    (q/ellipse start-x
+               start-y
+               (dec tile-size)
+               (dec tile-size))
+    (q/stroke 50 50 50 250)
+    (q/stroke-weight 1.5)
+    (q/ellipse end-x
+               end-y
+               (dec tile-size)
+               (dec tile-size))    )
+  
+  ;; Start and end point defining
+  (if (q/mouse-pressed?)
+    (let [x (max 0 (min (dec (q/width))  (q/mouse-x)))
+          y (max 0 (min (dec (q/height)) (q/mouse-y)))
+          grid-x (screen-to-grid x)
+          grid-y (screen-to-grid y)]
+      (q/text (str grid-x "," grid-y) x y)
+      (case (q/mouse-button)
+        :left
+        (reset! start-pos [grid-x grid-y])
+        :right
+        (reset! end-pos [grid-x grid-y]))))
+  
   ;; Draw HUD
-  (q/fill 50 50 50 255) 
+  (q/fill 30 30 30 255) 
   (q/stroke 255 255 255 255) 
   (q/stroke-weight 20.5) 
   (q/text (str "Cost:" (cost)) 0 (dec (q/height)))
@@ -98,5 +134,6 @@
   :setup setup
   :settings #(q/smooth 2)
   :draw draw
+  :mouse-released #(reset! path-finding-result (pf/calculate-path @start-pos @end-pos))
   :features [:keep-on-top]
   :middleware [m/pause-on-error])

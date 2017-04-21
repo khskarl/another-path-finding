@@ -89,6 +89,7 @@
        (if (or (nil? result) (> max-depth 50000))
          (recur (inc max-depth))
          result))))
+  
   ([from to max-depth] 
    (loop [discovered []
           parents []
@@ -153,5 +154,5 @@
 
 (sort-by #(:cost %) [{:cost 10} {:cost 0} {:cost 2}])
 (defn calculate-path [from to]
-  (iddfs from to))
+  (ucs from to))
 
