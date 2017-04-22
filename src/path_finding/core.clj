@@ -55,8 +55,7 @@
   (apply q/line (map #(+ (/ tile-size 2) (grid-to-screen %)) [x0 y0 x1 y1])))
 
 (defn draw-path [path]
-  (reduce #(do (draw-connection %1 %2) %2) path)
-  )
+  (reduce #(do (draw-connection %1 %2) %2) path))
 
 (defn draw-highlight-tiles [tiles]
   (run! #(draw-tile % 0 0) tiles))
@@ -115,9 +114,9 @@
       (q/text (str grid-x "," grid-y) x y)
       (case (q/mouse-button)
         :left
-        (reset! start-pos [grid-x grid-y])
+        (reset! end-pos [grid-x grid-y])
         :right
-        (reset! end-pos [grid-x grid-y]))))
+        (reset! start-pos [grid-x grid-y]))))
   
   ;; Draw HUD
   (q/fill 30 30 30 255) 
