@@ -76,12 +76,11 @@
                  (concat (rest to-visit) not-discovered-neighbors)))))))
 
 (defn get-values [nodes]
-  (map #(:value %) nodes))
+  (pmap #(:value %) nodes))
 
 (defn get-depths [nodes]
-  (map #(:depth %) nodes))
+  (pmap #(:depth %) nodes))
 
-;; TODO: Fix repeated node expansion, e.g. when from = [0 0], to = [0 3]
 (defn iddfs
   ([from to]
    (loop [max-depth 0]
@@ -124,9 +123,9 @@
              (recur (conj discovered (:value  current))
                     (conj parents    (:parent current))
                     (concat (butlast to-visit)
-                            (map #(assoc {:value % :parent (:value current)}
-                                         :depth (inc (:depth current)))
-                                 (reverse (remove-in not-visited-neighbors to-visit))))))))))))
+                            (pmap #(assoc {:value % :parent (:value current)}
+                                          :depth (inc (:depth current)))
+                                  (reverse (remove-in not-visited-neighbors to-visit))))))))))))
 
 (defn ucs [from to]
   (loop [discovered [from]
@@ -145,14 +144,11 @@
                  (concat parents (repeat (count not-visited-neighbors) (:value current)))
                  (sort-by #(:cost %)
                           (concat (rest to-visit)
-                                  (map #(into {} [{:value %}
-                                                  {:cost (+ (:cost current) (get-tile-cost %))}
-                                                  {:parent (:value current)}])
-                                       not-visited-neighbors)))))
-        ))
-    ))
+                                  (pmap #(into {} [{:value %}
+                                                   {:cost (+ (:cost current) (get-tile-cost %))}
+                                                   {:parent (:value current)}])
+                                        not-visited-neighbors)))))))))
 
-(sort-by #(:cost %) [{:cost 10} {:cost 0} {:cost 2}])
 (defn calculate-path [from to]
   (ucs from to))
 

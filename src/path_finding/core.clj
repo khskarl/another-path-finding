@@ -122,9 +122,7 @@
   (q/fill 30 30 30 255) 
   (q/stroke 255 255 255 255) 
   (q/stroke-weight 20.5) 
-  (q/text (str "Cost:" (cost)) 0 (dec (q/height)))
-  
-  )
+  (q/text (str "Cost:" (cost)) 0 (dec (q/height))))
 
 (q/defsketch path-finding
   :title "Path finding fun :D"
