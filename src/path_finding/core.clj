@@ -14,8 +14,8 @@
 (def window-size 400)
 (def tile-size (dec (/ (float window-size) (count pf/tilemap))))
 
-(def start-pos (atom [1 0]))
-(def end-pos (atom [20 20]))
+(def start-pos (atom [2 7]))
+(def end-pos (atom [30 30]))
 (def path-finding-result (atom (pf/calculate-path @start-pos @end-pos)))
 
 (defn cost [] (pf/calculate-path-cost (:path @path-finding-result)))

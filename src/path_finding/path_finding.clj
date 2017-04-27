@@ -137,7 +137,7 @@
                                   discovered
                                   parents)
          :discovered discovered
-         :leaves [0 0]}
+         :leaves (rest to-visit)}
         (let [neighbors (get-neighbors (:value current))
               not-visited-neighbors (remove-in neighbors discovered)]
           (recur (concat discovered not-visited-neighbors)
@@ -149,6 +149,43 @@
                                                    {:parent (:value current)}])
                                         not-visited-neighbors)))))))))
 
+(defn calculate-distance-cache [[x0 y0]]
+  (for [x (range 0 (tilemap-size))
+        y (range 0 (tilemap-size))]
+    (+ (Math/abs (- x x0)) (Math/abs (- y y0))))
+  )
+
+(defn index-with-tuple [coll [x y]]
+  (nth coll (+ (* (tilemap-size) x) y)))
+
+(index-with-tuple (calculate-distance-cache [0 0]) [2 2])
+
+(defn a*
+  ([from to]
+   (a* from to (calculate-distance-cache to)))
+  ([from to distance-cache]
+   (loop [discovered [from]
+          parents [nil]
+          to-visit [{:value from :cost (get-tile-cost from) :parent nil}]]
+     (let [current (first to-visit)]
+       (if (= (:value current) to)
+         {:path (path-from-parents (:value current)
+                                   discovered
+                                   parents)
+          :discovered discovered
+          :leaves (rest to-visit)}
+         (let [neighbors (get-neighbors (:value current))
+               not-visited-neighbors (remove-in neighbors discovered)]
+           (recur (concat discovered not-visited-neighbors)
+                  (concat parents (repeat (count not-visited-neighbors) (:value current)))
+                  (sort-by #(+ (:cost %) (* 1.1 (index-with-tuple distance-cache (:value %))))
+                           (concat (rest to-visit)
+                                   (pmap #(into {} [{:value %}
+                                                    {:cost (+ (:cost current) (get-tile-cost %))}
+                                                    {:parent (:value current)}])
+                                         not-visited-neighbors))))))))))
+
+
 (defn calculate-path [from to]
-  (ucs from to))
+  (a* from to))
 
